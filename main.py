@@ -34,17 +34,25 @@ for record in data:
     }[record.get('model')]
     session.add(model(id=record.get('pk'), **record.get('fields')))
     session.commit()
+
 command = input('''Для поиска издателя укажите параметр поиска:
-        по id - i, по имени - n:  
-''')
-if command == 'n':
-    for p in session.query(Publisher).filter(Publisher.name.ilike(
-            f'{input("Введите имя: ")}')).all():
-        print(p)
-elif command == 'i':
-    for c in session.query(Publisher).filter(
-            Publisher.id == f'{input("Введите id: ")}').all():
-        print(c)
+        по id - i, по имени - n: ''')
+input_ = input('Ведите значение параметра: ')
+print('Название книги'.ljust(50), 'Название магазина'.center(20),
+      'Стоимость покупки'.center(20), 'Дата покупки'.rjust(13))
+if command == 'i':
+    for c in session.query(Book.title, Shop.name, Sale.price, Sale.date_sale).\
+            join(Sale.stock).join(Stock.shop).join(Stock.book).\
+            filter(Book.id_publisher == input_).all():
+        print(f'{list(c)[0].ljust(50)}{list(c)[1].center(20)}'
+              f'{str(list(c)[2]).center(23)}{str(list(c)[3]).center(13)}')
+elif command == 'n':
+    id_ = session.query(Publisher.id).filter(Publisher.name == input_).all()[0]
+    for c in session.query(Book.title, Shop.name, Sale.price, Sale.date_sale).\
+            join(Sale.stock).join(Stock.shop).join(Stock.book).\
+            filter(Book.id_publisher == id_[0]).all():
+        print(f'{list(c)[0].ljust(50)}{list(c)[1].center(20)}'
+              f'{str(list(c)[2]).center(23)}{str(list(c)[3]).center(13)}')
 else:
     print('ОЩИБКА: Введена неверная команда!')
 
